@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina AI | Your Intelligent Assistant</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for message area */
+        .chat-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <!-- 1️⃣ Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+                        <span class="text-white font-bold text-lg">L</span>
+                    </div>
+                    <span
+                        class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Lumina
+                        AI</span>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8 text-sm font-semibold">
+                    <a href="#home" class="text-slate-600 hover:text-indigo-600 transition">Home</a>
+                    <a href="#about" class="text-slate-600 hover:text-indigo-600 transition">About</a>
+                    <a href="#content" class="text-slate-600 hover:text-indigo-600 transition">Content</a>
+                    <a href="#chatbot"
+                        class="px-5 py-2.5 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition shadow-md shadow-indigo-100">Chatbot</a>
+                </div>
+
+                <!-- Mobile Hamburger Menu Button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button"
+                        class="p-2 rounded-md text-slate-400 hover:text-slate-600 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu (Dynamic) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-100 px-4 py-4 space-y-3 shadow-xl">
+            <a href="#home" class="block text-slate-600 hover:text-indigo-600 font-medium"
+                onclick="toggleMobileMenu()">Home</a>
+            <a href="#about" class="block text-slate-600 hover:text-indigo-600 font-medium"
+                onclick="toggleMobileMenu()">About</a>
+            <a href="#content" class="block text-slate-600 hover:text-indigo-600 font-medium"
+                onclick="toggleMobileMenu()">Content</a>
+            <a href="#chatbot" class="block px-4 py-2 bg-indigo-600 text-white rounded-lg text-center font-bold"
+                onclick="toggleMobileMenu()">Chatbot</a>
+        </div>
+    </nav>
+
+    <!-- 2️⃣ Home Section (Hero) -->
+    <section id="home"
+        class="pt-32 pb-20 lg:pt-48 lg:pb-32 px-4 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div class="max-w-7xl mx-auto text-center">
+            <h1 class="text-5xl lg:text-7xl font-black text-slate-900 tracking-tight leading-tight mb-6">
+                Meet <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Lumina
+                    AI</span><br>
+                Future of Intelligence.
+            </h1>
+            <p class="max-w-2xl mx-auto text-lg text-slate-500 mb-10 leading-relaxed">
+                Experience the next generation of conversational AI. Designed to simplify your complex tasks and boost
+                your productivity with human-like understanding.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#chatbot"
+                    class="px-8 py-4 bg-indigo-600 text-white rounded-full text-lg font-bold hover:bg-indigo-700 transition shadow-xl shadow-indigo-200">
+                    Start Chatting
+                </a>
+                <a href="#about"
+                    class="px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-full text-lg font-bold hover:bg-slate-50 transition shadow-sm">
+                    Learn More
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3️⃣ About Section -->
+    <section id="about" class="py-24 px-4 bg-white border-y border-slate-100">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <div
+                        class="inline-block px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black uppercase tracking-widest">
+                        About Lumina
+                    </div>
+                    <h2 class="text-4xl font-bold text-slate-900 tracking-tight leading-snug">
+                        Bridging the gap between <br> <span class="text-indigo-600">Human & Machine</span> interaction.
+                    </h2>
+                    <p class="text-slate-500 leading-relaxed text-lg">
+                        Lumina AI is not just a chatbot; it's a productivity powerhouse. We've built an engine that
+                        understands context, tone, and intent to provide you with meaningful assistance in seconds.
+                    </p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div class="text-indigo-600 font-bold text-2xl mb-1">99.9%</div>
+                            <div class="text-slate-400 text-sm font-semibold">Uptime Guarantee</div>
+                        </div>
+                        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div class="text-indigo-600 font-bold text-2xl mb-1">Real-time</div>
+                            <div class="text-slate-400 text-sm font-semibold">Instant Responses</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Visual Card Layout -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div
+                        class="p-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-3xl shadow-xl shadow-indigo-100">
+                        <h3 class="text-xl font-bold mb-4 italic">The Mission</h3>
+                        <p class="text-indigo-100 text-sm leading-relaxed">To democratize access to advanced artificial
+                            intelligence through simple, intuitive conversational interfaces.</p>
+                    </div>
+                    <div class="p-8 bg-slate-900 text-white rounded-3xl shadow-xl shadow-slate-200 mt-6 sm:mt-12">
+                        <h3 class="text-xl font-bold mb-4 italic text-indigo-400">The Technology</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Powered by state-of-the-art neural networks
+                            trained on massive datasets to understand over 100 languages.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4️⃣ Content Section (Features) -->
+    <section id="content" class="py-24 px-4 bg-slate-50">
+        <div class="max-w-7xl mx-auto text-center mb-16">
+            <h2 class="text-4xl font-bold text-slate-900 tracking-tight">Advanced Features</h2>
+            <p class="text-slate-500 mt-4 max-w-xl mx-auto">Explore the capabilities that make Lumina AI the top choice
+                for modern professionals.</p>
+        </div>
+        <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-8 text-left">
+            <!-- Feature Card 1 -->
+            <div
+                class="group p-8 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div
+                    class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform">
+                    ✉️
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-3">Smart Context</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Lumina remembers the previous messages in a conversation, allowing for deep and complex
+                    back-and-forth interactions.
+                </p>
+            </div>
+            <!-- Feature Card 2 -->
+            <div
+                class="group p-8 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div
+                    class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform">
+                    🧩
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-3">Modular Logic</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Plug in different custom models based on your specific use case, from coding assistance to creative
+                    writing.
+                </p>
+            </div>
+            <!-- Feature Card 3 -->
+            <div
+                class="group p-8 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div
+                    class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform">
+                    🔒
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-3">Secure Nodes</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Enterprise-grade encryption ensures that your private data and conversations stays exactly where it
+                    belongs: with you.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5️⃣ Chatbot Section -->
+    <section id="chatbot" class="py-24 px-4 bg-white border-t border-slate-100">
+        <div class="max-w-4xl mx-auto flex flex-col items-center">
+
+            <div class="text-center mb-10">
+                <h2 class="text-4xl font-bold text-slate-900 tracking-tight mb-4">Chat with Lumina</h2>
+                <p class="text-slate-500">Ask anything and receive instant intelligent responses.</p>
+            </div>
+
+            <!-- Chat Interface -->
+            <div
+                class="w-full bg-white rounded-[2.5rem] border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] flex flex-col h-[600px] overflow-hidden relative">
+
+                <!-- Chat Header -->
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path
+                                    d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-800">Lumina AI</div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                                <span class="text-[10px] uppercase font-black tracking-widest text-slate-400">System
+                                    Online</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="p-2 hover:bg-slate-200 rounded-xl transition text-slate-400" title="Clear Chat"
+                        onclick="clearChat()">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Message Area -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6 chat-scrollbar bg-[#fdfdfd]">
+                    <!-- Initial Bot Message -->
+                    <div
+                        class="flex flex-col items-start max-w-[80%] animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div
+                            class="p-4 rounded-2xl rounded-tl-none bg-white border border-slate-200 text-sm text-slate-700 leading-relaxed shadow-sm">
+                            Hello! I am Lumina AI. How can I help you today?
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="p-4 bg-slate-50 border-t border-slate-200 shrink-0">
+                    <form id="chat-form" class="flex items-center gap-2 max-w-3xl mx-auto h-12 relative">
+                        <input type="text" id="chat-input" placeholder="Type your message here..."
+                            class="flex-1 h-full px-5 bg-white rounded-full border border-slate-200 text-sm focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all placeholder-slate-400"
+                            autocomplete="off">
+                        <button type="submit"
+                            class="h-full px-6 bg-indigo-600 text-white rounded-full font-bold text-sm hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-2">
+                            <span class="hidden sm:inline">Send</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                stroke-width="2.5">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 bg-slate-900 text-white text-center">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-2xl font-black italic mb-6">LUMINA AI</div>
+            <p class="text-sm text-slate-500 leading-none">© 2026 Lumina Intelligent Systems. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Navigation / Mobile Menu Logic ---
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        function toggleMobileMenu() {
+            mobileMenu.classList.add('hidden');
+        }
+
+        // --- 2. Chatbot Logic ---
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const messageText = chatInput.value.trim();
+            if (!messageText) return;
+
+            // 1. Add User Message
+            addMessage(messageText, 'user');
+            chatInput.value = '';
+
+            // 2. Dummy Bot Reply (After a short delay)
+            setTimeout(() => {
+                const reply = `You said: "${messageText}". I am an AI trained to process your inquiries with precision.`;
+                addMessage(reply, 'bot');
+            }, 800);
+        });
+
+        function addMessage(text, role) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex flex-col ${role === 'user' ? 'items-end' : 'items-start'} max-w-[80%] ml-auto ${role === 'user' ? '' : 'mr-auto'} animate-in fade-in slide-in-from-bottom-2 duration-300`;
+
+            // Align user message full right
+            if (role === 'user') {
+                messageDiv.className = `flex flex-col items-end max-w-[80%] ml-auto animate-in fade-in slide-in-from-bottom-2 duration-300`;
+            } else {
+                messageDiv.className = `flex flex-col items-start max-w-[80%] mr-auto animate-in fade-in slide-in-from-bottom-2 duration-300`;
+            }
+
+            const innerDiv = document.createElement('div');
+            innerDiv.className = role === 'user'
+                ? 'p-4 rounded-3xl rounded-tr-none bg-indigo-600 text-white text-sm leading-relaxed shadow-lg shadow-indigo-100'
+                : 'p-4 rounded-3xl rounded-tl-none bg-white border border-slate-200 text-sm text-slate-700 leading-relaxed shadow-sm';
+
+            innerDiv.innerText = text;
+            messageDiv.appendChild(innerDiv);
+            chatMessages.appendChild(messageDiv);
+
+            // Auto-scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function clearChat() {
+            chatMessages.innerHTML = '';
+            addMessage("Chat cleared. How can I help you today?", 'bot');
+        }
+    </script>
+</body>
+
+</html>
