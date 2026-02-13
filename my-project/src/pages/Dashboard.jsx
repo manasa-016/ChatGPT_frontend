@@ -37,6 +37,7 @@ const Dashboard = () => {
 
     // ─── Auth Guard & Fetch History ────────────────────────────
     useEffect(() => {
+        let cancelled = false;
         const token = localStorage.getItem('access_token');
         if (!token) { navigate('/login'); return; }
 
@@ -45,10 +46,11 @@ const Dashboard = () => {
                 const res = await fetch('http://127.0.0.1:8000/ai/history', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (cancelled) return;
                 if (res.ok) {
                     const data = await res.json();
                     const grouped = {};
-                    data.history.forEach(msg => {
+                    (data.history || []).forEach(msg => {
                         if (!grouped[msg.conversation_id]) grouped[msg.conversation_id] = [];
                         grouped[msg.conversation_id].push(
                             { id: msg.id * 2, role: 'user', content: msg.message || '' },
@@ -59,7 +61,7 @@ const Dashboard = () => {
 
                     const seen = new Set();
                     const convs = [];
-                    data.history.forEach(msg => {
+                    (data.history || []).forEach(msg => {
                         if (!seen.has(msg.conversation_id)) {
                             seen.add(msg.conversation_id);
                             convs.push({
@@ -80,7 +82,8 @@ const Dashboard = () => {
                 // Backend may be down — still allow dashboard usage
             }
         })();
-    }, [navigate]);
+        return () => { cancelled = true; };
+    }, []);
 
     // ─── Derived ───────────────────────────────────────────────
     const messages = allMessages[activeChatId] || [];
@@ -114,7 +117,7 @@ const Dashboard = () => {
 
         try {
             const controller = new AbortController();
-            const tid = setTimeout(() => controller.abort(), 15000);
+            const tid = setTimeout(() => controller.abort(), 30000);
             const res = await fetch('http://127.0.0.1:8000/ai/ask', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -122,6 +125,14 @@ const Dashboard = () => {
                 signal: controller.signal
             });
             clearTimeout(tid);
+
+            if (res.status === 429) {
+                const bot = { id: Date.now() + 1, role: 'assistant', content: "⚠️ **Rate limit reached.** The AI is getting too many requests right now. Please wait a moment and try again." };
+                setAllMessages(prev => ({ ...prev, [chatId]: [...(prev[chatId] || []), bot] }));
+                setIsProcessing(false);
+                return;
+            }
+
             if (!res.ok) throw new Error('fail');
 
             const data = await res.json();
@@ -340,7 +351,7 @@ const Dashboard = () => {
                                     </div>
                                     <div className={`max-w-[85%] ${msg.role === 'user' ? 'text-right' : ''}`}>
                                         <div className={`text-[15px] leading-relaxed ${msg.role === 'user' ? 'bg-[#1e1f20] p-3.5 rounded-2xl inline-block text-left border border-white/5' : 'text-gemini-text'}`}>
-                                            {msg.role === 'user' ? msg.content : (
+                                            {msg.role === 'user' ? (msg.content || '') : (
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}
                                                     className="prose prose-invert max-w-none prose-p:my-2 prose-headings:mb-3 prose-headings:mt-4 prose-code:text-pink-300 prose-pre:bg-[#1e1f20] prose-pre:p-4 prose-pre:rounded-lg"
                                                     components={{
@@ -354,7 +365,7 @@ const Dashboard = () => {
                                                             );
                                                         }
                                                     }}>
-                                                    {msg.content}
+                                                    {msg.content || ''}
                                                 </ReactMarkdown>
                                             )}
                                         </div>

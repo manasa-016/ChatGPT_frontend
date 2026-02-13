@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import './App.css'
-import Home from './pages/Home'
+import Home from './pages/ome'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import Header from './components/Header'
