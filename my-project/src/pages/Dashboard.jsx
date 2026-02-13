@@ -369,13 +369,7 @@ const Dashboard = () => {
 
                 {/* Messages */}
                 <div className="flex-grow overflow-y-auto custom-scrollbar px-4 pt-4 pb-44 flex flex-col items-center">
-                    <ErrorBoundary fallbackRender={({ error }) => (
-                        <div className="text-red-400 p-4 bg-red-500/10 rounded-xl border border-red-500/20 text-center text-sm">
-                            <p className="font-bold mb-2">Something went wrong in the chat area.</p>
-                            <p className="font-mono text-xs break-all bg-black/20 p-2 rounded">{error.message}</p>
-                            <button className="mt-2 text-xs underline" onClick={() => window.location.reload()}>Refresh Page</button>
-                        </div>
-                    )}>
+                    <ErrorBoundary fallback={<div className="text-red-400 p-4 bg-red-500/10 rounded-xl border border-red-500/20 text-center text-sm">Something went wrong in the chat area. Please refresh.</div>}>
                         {!activeChatId && messages.length === 0 ? (
                             <div className="w-full max-w-2xl text-center mt-12 animate-gemini-entry">
                                 <h1 className="text-3xl md:text-4xl font-black text-white mb-3 tracking-tight">Welcome, {userName}</h1>
