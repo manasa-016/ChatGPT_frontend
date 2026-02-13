@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import './App.css'
 import Home from './pages/Home'
 import About from './pages/About'
@@ -12,10 +12,12 @@ import Dashboard from './pages/Dashboard'
 function AppLayout() {
   const location = useLocation();
   const isDashboard = location.pathname === '/dashboard';
+  const isHome = location.pathname === '/';
+  const hideGlobalLayout = isDashboard || isHome;
 
   return (
     <>
-      {!isDashboard && <Header />}
+      {!hideGlobalLayout && <Header />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -23,8 +25,9 @@ function AppLayout() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {!isDashboard && <Footer />}
+      {!hideGlobalLayout && <Footer />}
     </>
   )
 }

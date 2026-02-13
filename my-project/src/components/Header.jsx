@@ -27,6 +27,7 @@ const Header = () => {
                     {/* CTA Section */}
                     <div className="hidden md:flex items-center gap-6">
                         <Link to="/login" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-600 transition-colors">Login</Link>
+                        <Link to="/signup" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-600 transition-colors">Signup</Link>
                         <Link to="/dashboard" className="px-8 py-3.5 bg-indigo-600 text-white rounded-full text-xs font-black uppercase tracking-[0.25em] hover:bg-indigo-700 transition shadow-xl shadow-indigo-100 transform active:scale-95">
                             Launch Bot
                         </Link>
@@ -56,6 +57,7 @@ const Header = () => {
                     <Link to="/contact" className="block text-sm font-black uppercase tracking-widest text-slate-800" onClick={() => setIsMenuOpen(false)}>Contact</Link>
                     <div className="pt-6 flex flex-col gap-4">
                         <Link to="/login" className="text-center py-3 text-xs font-black uppercase tracking-[0.2em] text-slate-500" onClick={() => setIsMenuOpen(false)}>Login</Link>
+                        <Link to="/signup" className="text-center py-3 text-xs font-black uppercase tracking-[0.2em] text-slate-500" onClick={() => setIsMenuOpen(false)}>Signup</Link>
                         <Link to="/dashboard" className="text-center py-4 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-[0.25em]" onClick={() => setIsMenuOpen(false)}>
                             Launch Bot
                         </Link>

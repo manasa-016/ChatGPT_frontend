@@ -1,107 +1,182 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const Home = () => {
   const [query, setQuery] = useState('');
-  const navigate = useNavigate();
+  const [messages, setMessages] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const messagesEndRef = useRef(null);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (query.trim()) {
-      navigate('/dashboard');
+  const sendMessage = async (text) => {
+    const messageText = text || query;
+    if (!messageText.trim() || isProcessing) return;
+
+    const userMsg = { id: Date.now(), role: 'user', content: messageText.trim() };
+    setMessages(prev => [...prev, userMsg]);
+    setQuery('');
+    setIsProcessing(true);
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const response = await fetch('http://127.0.0.1:8000/ai/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: messageText.trim(), conversation_id: null }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!response.ok) throw new Error('fail');
+      const data = await response.json();
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', content: data.response }]);
+    } catch {
+      // Fallback simulation
+      await new Promise(r => setTimeout(r, 700));
+      const q = messageText.toLowerCase();
+      let reply;
+      if (q.includes('hello') || q.includes('hi')) {
+        reply = "Hello! 👋 I'm **Lumina AI**, your creative assistant. Ask me anything — I can help with writing, coding, planning, and more!\n\nTry asking me to:\n- Write a poem or story\n- Explain a concept\n- Help debug code\n- Plan a trip";
+      } else if (q.includes('poem')) {
+        reply = "## 🌊 The Ocean's Song\n\nThe ocean whispers with a restless soul,\nA vast expanse where tides eternally roll.\nWaves dance in silver under the moon's soft glow,\nSecret stories in the depths that only spirits know.\n\nShe cradles ships upon her foamy breast,\nAnd sings the weary sailor songs of rest.";
+      } else if (q.includes('italy') || q.includes('trip') || q.includes('plan')) {
+        reply = "## 🇮🇹 Italy Trip Plan\n\n**Day 1-2: Rome**\n- Colosseum & Roman Forum\n- Vatican Museums & Sistine Chapel\n- Trastevere neighborhood for dinner\n\n**Day 3-4: Amalfi Coast**\n- Positano — stunning cliff-side views\n- Ravello — Villa Rufolo gardens\n- Boat tour to Capri\n\n**Day 5: Florence**\n- Uffizi Gallery\n- Ponte Vecchio\n- David by Michelangelo\n\n> 💡 **Tip:** Book trains on Trenitalia early for the best prices!";
+      } else if (q.includes('tech') || q.includes('trend')) {
+        reply = "## 🚀 Top Tech Trends\n\n1. **Generative AI** — LLMs, image generation, AI agents\n2. **Edge Computing** — Processing data closer to the source\n3. **Quantum Computing** — IBM, Google making breakthroughs\n4. **Sustainable Tech** — Green energy & carbon-neutral data centers\n5. **AR/VR** — Apple Vision Pro, Meta Quest\n\n*The AI revolution is just getting started!*";
+      } else if (q.includes('code') || q.includes('debug') || q.includes('python') || q.includes('javascript')) {
+        reply = "I'd be happy to help with coding! Here's a quick example:\n\n```python\ndef fibonacci(n):\n    \"\"\"Generate Fibonacci sequence up to n terms\"\"\"\n    a, b = 0, 1\n    result = []\n    for _ in range(n):\n        result.append(a)\n        a, b = b, a + b\n    return result\n\nprint(fibonacci(10))\n# Output: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]\n```\n\nFeel free to paste your code and I'll help debug it!";
+      } else if (q.includes('brainstorm') || q.includes('name') || q.includes('startup')) {
+        reply = "## 💡 Startup Name Ideas\n\n| Name | Vibe |\n|------|------|\n| **NovaMind** | Fresh thinking, bright future |\n| **PulseForge** | Energy and creation |\n| **CloudPetal** | Soft tech, big reach |\n| **ZenithLab** | Peak innovation |\n| **SparkNest** | Where ideas are born |\n| **ByteBloom** | Digital growth |\n\nWant me to brainstorm in a specific direction? (e.g., fintech, health, AI)";
+      } else {
+        reply = `Great question! Here's my take on **"${messageText.trim()}"**:\n\nI've analyzed your request and here are some thoughts:\n\n- This is an interesting topic worth exploring deeper\n- I can provide more specific help if you give me more details\n- Feel free to ask follow-up questions!\n\n> 💡 **Tip:** Sign in to save your conversation history and access more features!\n\nWhat else would you like to know?`;
+      }
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', content: reply }]);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isProcessing]);
+
+  const showWelcome = messages.length === 0 && !isProcessing;
+
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans selection:bg-indigo-100">
-
-      {/* ─── Premium Header ─── */}
-      <header className="flex justify-between items-center px-8 md:px-12 py-6 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
-          <div className="bg-slate-950 text-white w-9 h-9 flex items-center justify-center rounded-[12px] font-black text-xl shadow-lg group-hover:rotate-[10deg] transition-transform duration-500 italic">
-            L
-          </div>
-          <span className="text-xl font-black tracking-tighter text-slate-900 group-hover:tracking-tight transition-all">Lumina AI</span>
+    <div className="flex flex-col h-screen dark-theme font-sans overflow-hidden">
+      {/* ─── Header ─── */}
+      <header className="h-14 flex items-center justify-between px-5 border-b border-white/5 shrink-0 z-10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xs font-black shadow-lg shadow-indigo-900/30">L</div>
+          <span className="text-lg font-bold tracking-tight">Lumina AI</span>
         </div>
-
-        <div className="flex items-center gap-4">
-          <Link to="/login" className="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors px-4 py-2 rounded-full hover:bg-slate-100/50">
+        <div className="flex items-center gap-2">
+          <Link to="/login" className="text-sm font-semibold text-gemini-text-muted hover:text-white px-4 py-1.5 rounded-full hover:bg-white/5 transition-all">
             Log in
           </Link>
-          <Link to="/signup" className="text-sm font-bold bg-slate-950 text-white px-6 py-2.5 rounded-full hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95">
+          <Link to="/signup" className="bg-indigo-600 text-white px-5 py-1.5 rounded-full text-sm font-bold hover:bg-indigo-500 active:scale-95 transition-all shadow-lg shadow-indigo-900/20">
             Sign up
           </Link>
         </div>
       </header>
 
-      {/* ─── Main Content: Center Stage ─── */}
-      <main className="flex-grow flex flex-col items-center justify-center px-6 -mt-16">
-
-        <div className="w-full max-w-3xl flex flex-col items-center animate-fade-in-up">
-          <h1 className="text-3xl md:text-5xl font-black text-slate-900 mb-8 tracking-tighter text-center">
-            What's on your mind today?
-          </h1>
-
-          <form
-            onSubmit={handleSearch}
-            className="w-full relative group"
-          >
-            {/* The Iconic Pill */}
-            <div className="flex items-center bg-white border border-slate-200/60 rounded-[2.5rem] p-3 pl-6 pr-3 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.1)] focus-within:shadow-[0_30px_70px_-20px_rgba(0,0,0,0.15)] focus-within:border-indigo-100 transition-all duration-700">
-
-              <button type="button" className="p-2.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-2xl transition-all">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-              </button>
-
-              <input
-                type="text"
-                placeholder="Message Lumina AI..."
-                className="flex-1 bg-transparent px-4 outline-none text-lg text-slate-800 placeholder-slate-400 font-medium"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-
-              <div className="flex items-center gap-3">
-                <button type="button" className="hidden md:flex p-2.5 text-slate-400 hover:text-slate-600 transition-colors">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-                </button>
+      {/* ─── Chat Area ─── */}
+      <main className="flex-grow overflow-y-auto custom-scrollbar px-4 pt-4 pb-44 flex flex-col items-center">
+        {showWelcome ? (
+          <div className="w-full max-w-2xl text-center mt-16 animate-gemini-entry">
+            <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
+              Hello there.
+            </h1>
+            <p className="text-lg text-gemini-text-muted font-medium mb-10">
+              How can I help you today?
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+              {[
+                { icon: "✍️", label: "Help me write", detail: "a poem about the ocean" },
+                { icon: "🗺️", label: "Plan a trip", detail: "to Italy's Amalfi Coast" },
+                { icon: "📊", label: "Summarize", detail: "the latest tech trends" },
+                { icon: "💡", label: "Brainstorm", detail: "a name for my startup" }
+              ].map((item, idx) => (
                 <button
-                  type="submit"
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${query.trim()
-                      ? "bg-slate-950 text-white shadow-xl hover:scale-110"
-                      : "bg-slate-50 text-slate-200"
-                    }`}
+                  key={idx}
+                  onClick={() => sendMessage(`${item.label} ${item.detail}`)}
+                  className="p-4 bg-[#1e1f20] border border-white/5 rounded-2xl hover:bg-white/5 hover:border-white/10 transition-all group text-left"
                 >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 4v16m4-12v8m4-6v4M8 8v8M4 10v4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Suggestion Chips */}
-            <div className="mt-8 flex flex-wrap justify-center gap-3 opacity-0 animate-fade-in [animation-delay:400ms]">
-              {["Brand concept", "Plan a trip", "Code a bot", "Email draft"].map((hint) => (
-                <button
-                  key={hint}
-                  type="button"
-                  onClick={() => setQuery(hint)}
-                  className="px-5 py-2 rounded-full bg-slate-50 border border-slate-100 text-[13px] font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-all active:scale-95"
-                >
-                  {hint}
+                  <span className="text-base mb-1 block">{item.icon}</span>
+                  <p className="text-sm font-bold text-white group-hover:text-indigo-400 mb-0.5">{item.label}</p>
+                  <p className="text-xs text-gemini-text-muted">{item.detail}</p>
                 </button>
               ))}
             </div>
-          </form>
-        </div>
+          </div>
+        ) : (
+          <div className="w-full max-w-3xl space-y-6">
+            {messages.map(msg => (
+              <div key={msg.id} className={`flex gap-3 animate-gemini-entry ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-[#2d2e30] text-gemini-text'}`}>
+                  {msg.role === 'user' ? 'U' : 'L'}
+                </div>
+                <div className={`max-w-[85%] ${msg.role === 'user' ? 'text-right' : ''}`}>
+                  <div className={`text-[15px] leading-relaxed ${msg.role === 'user' ? 'bg-[#1e1f20] p-3.5 rounded-2xl inline-block text-left border border-white/5' : 'text-gemini-text'}`}>
+                    {msg.role === 'user' ? msg.content : (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-invert max-w-none prose-p:my-2 prose-headings:mb-3 prose-headings:mt-4 prose-code:text-pink-300 prose-pre:bg-[#1e1f20] prose-pre:p-4 prose-pre:rounded-lg">
+                        {msg.content}
+                      </ReactMarkdown>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {isProcessing && (
+              <div className="flex gap-3 items-center">
+                <div className="w-7 h-7 rounded-full bg-[#2d2e30] flex items-center justify-center">
+                  <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-indigo-400 rounded-full animate-spin"></div>
+                </div>
+                <div className="space-y-2 flex-grow max-w-[60%]">
+                  <div className="h-3.5 bg-white/5 rounded w-3/4 animate-pulse"></div>
+                  <div className="h-3.5 bg-white/5 rounded w-1/2 animate-pulse"></div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
       </main>
 
-      {/* ─── Footer ─── */}
-      <footer className="py-8 text-center">
-        <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.3em] font-sans">
-          Lumina AI can make mistakes. Check important info.
-        </p>
-      </footer>
+      {/* ─── Input Bar ─── */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#131314] via-[#131314] to-transparent">
+        <div className="max-w-3xl mx-auto pb-4">
+          <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
+            className="flex items-end gap-2 p-2 rounded-[24px] border border-white/5 bg-[#1e1f20] shadow-2xl">
+            <textarea
+              rows="1"
+              placeholder="Message Lumina AI..."
+              className="bg-transparent text-base text-gemini-text placeholder-gemini-text-muted px-3 py-2.5 outline-none resize-none flex-grow font-medium disabled:opacity-50"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              disabled={isProcessing}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  sendMessage();
+                }
+              }}
+            />
+            <button
+              type="submit"
+              disabled={!query.trim() || isProcessing}
+              className="bg-indigo-600 disabled:bg-[#2d2e30] text-white disabled:text-gemini-text-muted p-2 rounded-full transition-all active:scale-90 shrink-0"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+            </button>
+          </form>
+          <p className="text-center text-[10px] text-gemini-text-muted mt-2">
+            Lumina AI can make mistakes. Sign in to save conversations.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
