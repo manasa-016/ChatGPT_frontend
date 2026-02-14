@@ -120,25 +120,34 @@ const Home = () => {
           </div>
         ) : (
           <div className="w-full max-w-3xl space-y-6">
-            <ErrorBoundary fallback={<div className="text-red-400 p-4 bg-red-500/10 rounded-xl border border-red-500/20 text-center text-sm">Something went wrong in the chat area. Please refresh.</div>}>
-              {messages.map(msg => (
-                <div key={msg.id} className={`flex gap-3 animate-gemini-entry ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-[#2d2e30] text-gemini-text'}`}>
-                    {msg.role === 'user' ? 'U' : 'L'}
-                  </div>
-                  <div className={`max-w-[85%] ${msg.role === 'user' ? 'text-right' : ''}`}>
-                    <div className={`text-[15px] leading-relaxed ${msg.role === 'user' ? 'bg-[#1e1f20] p-3.5 rounded-2xl inline-block text-left border border-white/5' : 'text-gemini-text'}`}>
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        className="prose prose-invert max-w-none prose-p:my-2 prose-headings:mb-3 prose-headings:mt-4 prose-code:text-pink-300 prose-pre:bg-[#1e1f20] prose-pre:p-4 prose-pre:rounded-lg"
-                      >
-                        {String(msg.content || '')}
-                      </ReactMarkdown>
-                    </div>
+            {messages.map(msg => (
+              <div key={msg.id} className={`flex gap-3 animate-gemini-entry ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-[#2d2e30] text-gemini-text'}`}>
+                  {msg.role === 'user' ? 'U' : 'L'}
+                </div>
+                <div className={`max-w-[85%] ${msg.role === 'user' ? 'text-right' : ''}`}>
+                  <div className={`text-[15px] leading-relaxed ${msg.role === 'user' ? 'bg-[#1e1f20] p-3.5 rounded-2xl inline-block text-left border border-white/5' : 'text-gemini-text'}`}>
+                    <ErrorBoundary
+                      fallbackRender={({ error }) => (
+                        <div className="text-[10px] text-red-400 p-2 italic bg-red-500/5 rounded">
+                          Render Error: {error.message}
+                        </div>
+                      )}
+                    >
+                      {msg.role === 'user' ? (
+                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                      ) : (
+                        <div className="prose prose-invert max-w-none prose-p:my-2 prose-code:text-pink-300">
+                          <ReactMarkdown>
+                            {String(msg.content || '')}
+                          </ReactMarkdown>
+                        </div>
+                      )}
+                    </ErrorBoundary>
                   </div>
                 </div>
-              ))}
-            </ErrorBoundary>
+              </div>
+            ))}
             {isProcessing && (
               <div className="flex gap-3 items-center">
                 <div className="w-7 h-7 rounded-full bg-[#2d2e30] flex items-center justify-center">

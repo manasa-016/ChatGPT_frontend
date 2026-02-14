@@ -53,17 +53,18 @@ const Dashboard = () => {
                     const grouped = {};
                     (data.history || []).forEach(msg => {
                         const cid = msg.conversation_id;
+                        if (!cid) return;
                         if (!grouped[cid]) grouped[cid] = [];
 
-                        // Use unique IDs and safe casting
+                        const baseId = Number(msg.id) || Date.now();
                         grouped[cid].push(
                             {
-                                id: (msg.id || Date.now()) * 2 + Math.random(),
+                                id: `user-${baseId}-${Math.random()}`,
                                 role: 'user',
                                 content: String(msg.message || '')
                             },
                             {
-                                id: (msg.id || Date.now()) * 2 + 1 + Math.random(),
+                                id: `bot-${baseId}-${Math.random()}`,
                                 role: 'assistant',
                                 content: String(msg.response || '')
                             }
@@ -103,9 +104,13 @@ const Dashboard = () => {
 
     const userName = (localStorage.getItem('userName') || 'User').trim();
     const userEmail = (localStorage.getItem('userEmail') || '').trim();
-    const initials = userName
-        ? userName.split(/\s+/).filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2)
-        : 'U';
+    const initials = (userName || 'User')
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2) || 'U';
 
     // ─── Auto Scroll ──────────────────────────────────────────
     useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isProcessing]);
@@ -123,7 +128,7 @@ const Dashboard = () => {
         const token = localStorage.getItem('access_token');
         const text = query.trim();
         const chatId = activeChatId || 'temp';
-        const userMsg = { id: Date.now(), role: 'user', content: text };
+        const userMsg = { id: `user-${Date.now()}`, role: 'user', content: text };
 
         setAllMessages(prev => ({ ...prev, [chatId]: [...(prev[chatId] || []), userMsg] }));
         setQuery('');
@@ -149,7 +154,7 @@ const Dashboard = () => {
 
             const data = await res.json();
             const bot = {
-                id: Date.now() + Math.random(),
+                id: `bot-${Date.now()}-${Math.random()}`,
                 role: 'assistant',
                 content: String(data.response || '')
             };
@@ -157,7 +162,6 @@ const Dashboard = () => {
             setAllMessages(prev => {
                 const cid = data.conversation_id || chatId;
                 const prevMsgs = prev[chatId] || [];
-                // If it was a temp chat and we now have a real ID, move the messages
                 const newState = { ...prev };
                 if (chatId === 'temp' && data.conversation_id) {
                     delete newState['temp'];
@@ -192,7 +196,7 @@ const Dashboard = () => {
                 reply = `Great question about **"${text}"**! Here's my analysis:\n\n1. **Understanding**: I've processed your request carefully\n2. **Key Insight**: This is an interesting area to explore\n3. **Suggestion**: I can dive deeper if you provide more context\n\n> 💡 Your chat history is being saved automatically.\n\nWhat would you like to know more about?`;
             }
             const bot = {
-                id: Date.now() + Math.random(),
+                id: `bot-fallback-${Date.now()}-${Math.random()}`,
                 role: 'assistant',
                 content: String(reply || '')
             };
@@ -211,6 +215,7 @@ const Dashboard = () => {
                     ...prev.filter(c => c.id !== 'temp')
                 ]);
                 setAllMessages(prev => {
+                    const tempMsgs = [...(prev['temp'] || []), userMsg, bot];
                     const { temp, ...rest } = prev;
                     return { ...rest, [newId]: tempMsgs };
                 });
@@ -369,111 +374,76 @@ const Dashboard = () => {
 
                 {/* Messages */}
                 <div className="flex-grow overflow-y-auto custom-scrollbar px-4 pt-4 pb-44 flex flex-col items-center">
-                    <ErrorBoundary fallback={<div className="text-red-400 p-4 bg-red-500/10 rounded-xl border border-red-500/20 text-center text-sm">Something went wrong in the chat area. Please refresh.</div>}>
-                        {!activeChatId && messages.length === 0 ? (
-                            <div className="w-full max-w-2xl text-center mt-12 animate-gemini-entry">
-                                <h1 className="text-3xl md:text-4xl font-black text-white mb-3 tracking-tight">Welcome, {userName}</h1>
-                                <p className="text-base text-gemini-text-muted font-medium mb-10">What would you like to explore?</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
-                                    {[
-                                        { icon: "✍️", label: "Help me write", detail: "a creative story" },
-                                        { icon: "💻", label: "Debug code", detail: "find and fix bugs" },
-                                        { icon: "📊", label: "Analyze data", detail: "get insights" },
-                                        { icon: "💡", label: "Brainstorm", detail: "generate ideas" }
-                                    ].map((item, idx) => (
-                                        <button key={idx} onClick={() => setQuery(`${item.label} ${item.detail}`)}
-                                            className="p-3.5 bg-[#1e1f20] border border-white/5 rounded-xl hover:bg-white/5 hover:border-white/10 transition-all group text-left">
-                                            <span className="text-base mb-1 block">{item.icon}</span>
-                                            <p className="text-sm font-bold text-white group-hover:text-indigo-400 mb-0.5">{item.label}</p>
-                                            <p className="text-xs text-gemini-text-muted">{item.detail}</p>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="w-full max-w-3xl space-y-6">
-                                {messages.map(msg => (
-                                    <div key={msg.id} className={`flex gap-3 animate-gemini-entry ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-[#2d2e30] text-gemini-text'}`}>
-                                            {msg.role === 'user' ? initials : 'L'}
-                                        </div>
-                                        <div className={`max-w-[85%] ${msg.role === 'user' ? 'text-right' : ''}`}>
-                                            <div className={`text-[15px] leading-relaxed ${msg.role === 'user' ? 'bg-[#1e1f20] p-3.5 rounded-2xl inline-block text-left border border-white/5' : 'text-gemini-text'}`}>
-                                                <ReactMarkdown
-                                                    remarkPlugins={[remarkGfm]}
-                                                    className="prose prose-invert max-w-none prose-p:my-2 prose-headings:mb-3 prose-headings:mt-4 prose-code:text-pink-300 prose-pre:bg-[#1e1f20] prose-pre:p-4 prose-pre:rounded-lg"
-                                                    components={{
-                                                        pre({ node, children, ...props }) {
-                                                            return (
-                                                                <pre className="bg-[#1e1f20] p-4 rounded-lg overflow-x-auto my-3 custom-scrollbar border border-white/10" {...props}>
-                                                                    {children}
-                                                                </pre>
-                                                            );
-                                                        },
-                                                        code({ node, className, children, ...props }) {
-                                                            const match = /language-(\w+)/.exec(className || '');
-                                                            // If it's a block code (has language class or is inside pre - which we can't easily check here but usually match implies block or user intention),
-                                                            // or if we just want to style inline code.
-                                                            // Since we override 'pre' above, 'code' will be inside 'pre' for blocks.
-                                                            // We want to avoid double styling for blocks.
-                                                            // Simple heuristic: if no match and no long text, maybe inline?
-                                                            // actually, let's just stick to a simple inline style that isn't too invasive, 
-                                                            // or rely on the index.css which ALREADY styles .prose :where(code)
-
-                                                            // The previous code used: bg-white/10 px-1.5 py-0.5 rounded text-sm font-mono text-pink-300
-                                                            // This looks like an inline style.
-
-                                                            // If we apply this to ALL code, blocks get it too.
-                                                            // But blocks are inside PRE.
-                                                            // We can use a class and style it in CSS? No, we want to use Tailwind classes here if possible.
-
-                                                            // Let's rely on the fact that 'match' usually means block.
-                                                            // But 'remark-gfm' etc might not always add language class.
-
-                                                            // Better approach:
-                                                            // Just render the code. The prose plugin in index.css actually handles a lot.
-                                                            // But the user wanted specific pink styling for inline.
-                                                            // The `index.css` has `.prose code` styling (lines 109-115) with `background-color: rgba(255, 255, 255, 0.1)` and `color: #e3e3e3`.
-                                                            // The user's inline style was `text-pink-300`.
-
-                                                            // I will just return standard code here and rely on global styles + standard behavior to avoid crash.
-                                                            // If the user wants pink inline code, they can update CSS or we can do it later.
-                                                            // Avoiding the crash is priority #1.
-
-                                                            return (
-                                                                <code className={`${className} bg-white/10 px-1.5 py-0.5 rounded text-sm font-mono text-pink-300`} {...props}>
-                                                                    {children}
-                                                                </code>
-                                                            );
-                                                        }
-                                                    }}>
-                                                    {String(msg.content || '')}
-                                                </ReactMarkdown>
-                                            </div>
-                                            {msg.role === 'assistant' && (
-                                                <div className="flex gap-2 mt-2 opacity-0 hover:opacity-60 transition-opacity">
-                                                    <button className="gemini-icon-btn p-1" title="Copy"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>
-                                                    <button className="gemini-icon-btn p-1" title="Like"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg></button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                    {!activeChatId && messages.length === 0 ? (
+                        <div className="w-full max-w-2xl text-center mt-12 animate-gemini-entry">
+                            <h1 className="text-3xl md:text-4xl font-black text-white mb-3 tracking-tight">Welcome, {userName}</h1>
+                            <p className="text-base text-gemini-text-muted font-medium mb-10">What would you like to explore?</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                                {[
+                                    { icon: "✍️", label: "Help me write", detail: "a creative story" },
+                                    { icon: "💻", label: "Debug code", detail: "find and fix bugs" },
+                                    { icon: "📊", label: "Analyze data", detail: "get insights" },
+                                    { icon: "💡", label: "Brainstorm", detail: "generate ideas" }
+                                ].map((item, idx) => (
+                                    <button key={idx} onClick={() => setQuery(`${item.label} ${item.detail}`)}
+                                        className="p-3.5 bg-[#1e1f20] border border-white/5 rounded-xl hover:bg-white/5 hover:border-white/10 transition-all group text-left">
+                                        <span className="text-base mb-1 block">{item.icon}</span>
+                                        <p className="text-sm font-bold text-white group-hover:text-indigo-400 mb-0.5">{item.label}</p>
+                                        <p className="text-xs text-gemini-text-muted">{item.detail}</p>
+                                    </button>
                                 ))}
-                                {isProcessing && (
-                                    <div className="flex gap-3 items-center animate-gemini-entry">
-                                        <div className="w-7 h-7 rounded-full bg-[#2d2e30] flex items-center justify-center">
-                                            <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-indigo-400 rounded-full animate-spin"></div>
-                                        </div>
-                                        <div className="space-y-2 max-w-[50%]">
-                                            <div className="h-3 bg-white/5 rounded w-3/4 animate-pulse"></div>
-                                            <div className="h-3 bg-white/5 rounded w-1/2 animate-pulse"></div>
-                                        </div>
-                                    </div>
-                                )}
-                                <div ref={messagesEndRef} />
                             </div>
-                        )}
-                    </ErrorBoundary>
+                        </div>
+                    ) : (
+                        <div className="w-full max-w-3xl space-y-6">
+                            {messages.map(msg => (
+                                <div key={msg.id} className={`flex gap-3 animate-gemini-entry ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-[#2d2e30] text-gemini-text'}`}>
+                                        {msg.role === 'user' ? initials : 'L'}
+                                    </div>
+                                    <div className={`max-w-[85%] ${msg.role === 'user' ? 'text-right' : ''}`}>
+                                        <div className={`text-[15px] leading-relaxed ${msg.role === 'user' ? 'bg-[#1e1f20] p-3.5 rounded-2xl inline-block text-left border border-white/5' : 'text-gemini-text'}`}>
+                                            <ErrorBoundary
+                                                fallbackRender={({ error }) => (
+                                                    <div className="text-[10px] text-red-400 p-2 italic bg-red-500/5 rounded">
+                                                        Render Error: {error.message}
+                                                    </div>
+                                                )}
+                                            >
+                                                {msg.role === 'user' ? (
+                                                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                                                ) : (
+                                                    <div className="prose prose-invert max-w-none prose-p:my-2 prose-code:text-pink-300">
+                                                        <ReactMarkdown>
+                                                            {String(msg.content || '')}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                )}
+                                            </ErrorBoundary>
+                                        </div>
+                                        {msg.role === 'assistant' && (
+                                            <div className="flex gap-2 mt-2 opacity-0 hover:opacity-60 transition-opacity">
+                                                <button className="gemini-icon-btn p-1" title="Copy"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>
+                                                <button className="gemini-icon-btn p-1" title="Like"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg></button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {isProcessing && (
+                                <div className="flex gap-3 items-center animate-gemini-entry">
+                                    <div className="w-7 h-7 rounded-full bg-[#2d2e30] flex items-center justify-center">
+                                        <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-indigo-400 rounded-full animate-spin"></div>
+                                    </div>
+                                    <div className="space-y-2 max-w-[50%]">
+                                        <div className="h-3 bg-white/5 rounded w-3/4 animate-pulse"></div>
+                                        <div className="h-3 bg-white/5 rounded w-1/2 animate-pulse"></div>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    )}
                 </div>
 
                 {/* Input */}
