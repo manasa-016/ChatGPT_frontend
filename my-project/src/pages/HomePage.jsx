@@ -36,30 +36,20 @@ const Home = () => {
         return;
       }
 
-      if (!response.ok) throw new Error('fail');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Service unavailable');
+      }
+
       const data = await response.json();
       setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', content: data.response }]);
-    } catch {
-      // Fallback simulation when backend is unavailable
-      await new Promise(r => setTimeout(r, 700));
-      const q = messageText.toLowerCase();
-      let reply;
-      if (q.includes('hello') || q.includes('hi')) {
-        reply = "Hello! 👋 I'm **Lumina AI**, your creative assistant. Ask me anything — I can help with writing, coding, planning, and more!\n\nTry asking me to:\n- Write a poem or story\n- Explain a concept\n- Help debug code\n- Plan a trip";
-      } else if (q.includes('poem')) {
-        reply = "## 🌊 The Ocean's Song\n\nThe ocean whispers with a restless soul,\nA vast expanse where tides eternally roll.\nWaves dance in silver under the moon's soft glow,\nSecret stories in the depths that only spirits know.\n\nShe cradles ships upon her foamy breast,\nAnd sings the weary sailor songs of rest.";
-      } else if (q.includes('italy') || q.includes('trip') || q.includes('plan')) {
-        reply = "## 🇮🇹 Italy Trip Plan\n\n**Day 1-2: Rome**\n- Colosseum & Roman Forum\n- Vatican Museums & Sistine Chapel\n- Trastevere neighborhood for dinner\n\n**Day 3-4: Amalfi Coast**\n- Positano — stunning cliff-side views\n- Ravello — Villa Rufolo gardens\n- Boat tour to Capri\n\n**Day 5: Florence**\n- Uffizi Gallery\n- Ponte Vecchio\n- David by Michelangelo\n\n> 💡 **Tip:** Book trains on Trenitalia early for the best prices!";
-      } else if (q.includes('tech') || q.includes('trend')) {
-        reply = "## 🚀 Top Tech Trends\n\n1. **Generative AI** — LLMs, image generation, AI agents\n2. **Edge Computing** — Processing data closer to the source\n3. **Quantum Computing** — IBM, Google making breakthroughs\n4. **Sustainable Tech** — Green energy & carbon-neutral data centers\n5. **AR/VR** — Apple Vision Pro, Meta Quest\n\n*The AI revolution is just getting started!*";
-      } else if (q.includes('code') || q.includes('debug') || q.includes('python') || q.includes('javascript')) {
-        reply = "I'd be happy to help with coding! Here's a quick example:\n\n```python\ndef fibonacci(n):\n    \"\"\"Generate Fibonacci sequence up to n terms\"\"\"\n    a, b = 0, 1\n    result = []\n    for _ in range(n):\n        result.append(a)\n        a, b = b, a + b\n    return result\n\nprint(fibonacci(10))\n# Output: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]\n```\n\nFeel free to paste your code and I'll help debug it!";
-      } else if (q.includes('brainstorm') || q.includes('name') || q.includes('startup')) {
-        reply = "## 💡 Startup Name Ideas\n\n| Name | Vibe |\n|------|------|\n| **NovaMind** | Fresh thinking, bright future |\n| **PulseForge** | Energy and creation |\n| **CloudPetal** | Soft tech, big reach |\n| **ZenithLab** | Peak innovation |\n| **SparkNest** | Where ideas are born |\n| **ByteBloom** | Digital growth |\n\nWant me to brainstorm in a specific direction? (e.g., fintech, health, AI)";
-      } else {
-        reply = `Great question! Here's my take on **"${messageText.trim()}"**:\n\nI've analyzed your request and here are some thoughts:\n\n- This is an interesting topic worth exploring deeper\n- I can provide more specific help if you give me more details\n- Feel free to ask follow-up questions!\n\n> 💡 **Tip:** Sign in to save your conversation history and access more features!\n\nWhat else would you like to know?`;
-      }
-      setMessages(prev => [...prev, { id: Date.now() + Math.random(), role: 'assistant', content: String(reply || '') }]);
+    } catch (err) {
+      const errorMsg = err.message === 'fail' ? 'The AI is having trouble right now.' : err.message;
+      setMessages(prev => [...prev, {
+        id: Date.now() + Math.random(),
+        role: 'assistant',
+        content: `⚠️ **Service Error:** ${errorMsg}\n\nPlease try again in a few moments.`
+      }]);
     } finally {
       setIsProcessing(false);
     }
