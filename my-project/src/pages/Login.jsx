@@ -62,7 +62,7 @@ const Login = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
             {/* Email */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gemini-text-muted uppercase tracking-widest pl-1">Email</label>
@@ -73,6 +73,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="off"
               />
             </div>
 
@@ -86,6 +87,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="off"
               />
             </div>
 

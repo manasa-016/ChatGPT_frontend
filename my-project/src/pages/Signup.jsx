@@ -94,7 +94,7 @@ const Signup = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             {/* Full Name */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gemini-text-muted uppercase tracking-widest pl-1">Full Name</label>
@@ -106,6 +106,7 @@ const Signup = () => {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
+                autoComplete="off"
               />
             </div>
 
@@ -120,6 +121,7 @@ const Signup = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                autoComplete="off"
               />
             </div>
 
@@ -135,6 +137,7 @@ const Signup = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete="off"
                 />
               </div>
               <div className="space-y-1.5">
@@ -147,6 +150,7 @@ const Signup = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
+                  autoComplete="off"
                 />
               </div>
             </div>
